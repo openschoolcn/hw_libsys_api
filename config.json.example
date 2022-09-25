@@ -1,0 +1,8 @@
+{
+  "library": {
+    "base_url": "http://xxx.com"
+  },
+  "request": {
+    "timeout": 5
+  }
+}
