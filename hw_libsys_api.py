@@ -112,19 +112,18 @@ class Client:
                 error_msg = error.text()
                 if "用户名或密码错误" in error_msg:
                     return {"code": 1002, "msg": "用户名或密码不正确"}
-                elif "验证码" in error_msg:
+                if "验证码" in error_msg:
                     return {"code": 1004, "msg": "验证码输入错误"}
                 return {"code": 999, "msg": "错误：" + error_msg}
             self.cookies = self.sess.cookies.get_dict()
             # 未身份认证
             if req_login.headers["Location"] == "redr_con.php":
                 return {"code": 1011, "msg": "需要身份认证"}
-            else:
-                return {
-                    "code": 1000,
-                    "msg": "登录成功",
-                    "data": {"cookies": self.cookies},
-                }
+            return {
+                "code": 1000,
+                "msg": "登录成功",
+                "data": {"cookies": self.cookies},
+            }
         except exceptions.Timeout:
             return {"code": 1003, "msg": "验证码登录超时"}
         except (
@@ -176,8 +175,7 @@ class Client:
                         return {"code": 999, "msg": "姓名不匹配，身份验证失败"}
                     return {"code": 998, "msg": "错误：" + error_msg}
                 return {"code": 999, "msg": "身份认证时未记录的错误"}
-            else:
-                return {"code": 999, "msg": "身份认证时未记录的错误"}
+            return {"code": 999, "msg": "身份认证时未记录的错误"}
         except exceptions.Timeout:
             return {"code": 1003, "msg": "身份认证超时"}
         except (
@@ -566,33 +564,27 @@ class Client:
             doc = pq(req_detail.text)
             details = doc("#item_detail dl").items()
             trs = list(doc("table#item tr").items())
+            dictionary = {
+                "其它题名": "oth_title",
+                "个人责任者": "author",
+                "个人次要责任者": "oth_author",
+                "学科主题": "category",
+                "出版发行项": "publisher",
+                "ISBN及定价": "isbn",
+                "载体形态项": "physical",
+                "一般附注": "notes",
+                "责任者附注": "author_notes",
+                "提要文摘附注": "abstract",
+                "中图法分类号": "call_no",
+            }
             result = {}
             for i in details:
                 if "题名/责任者" in i("dt").text():
                     result["title"] = i("dd a").text()
                     result["full_title"] = i("dd").text()
-                elif "其它题名" in i("dt").text():
-                    result["oth_title"] = i("dd").text()
-                elif "个人责任者" in i("dt").text():
-                    result["author"] = i("dd").text()
-                elif "个人次要责任者" in i("dt").text():
-                    result["oth_author"] = i("dd").text()
-                elif "学科主题" in i("dt").text():
-                    result["category"] = i("dd").text()
-                elif "出版发行项" in i("dt").text():
-                    result["publisher"] = i("dd").text()
-                elif "ISBN及定价" in i("dt").text():
-                    result["isbn"] = i("dd").text()
-                elif "载体形态项" in i("dt").text():
-                    result["physical"] = i("dd").text()
-                elif "一般附注" in i("dt").text():
-                    result["notes"] = i("dd").text()
-                elif "责任者附注" in i("dt").text():
-                    result["author_notes"] = i("dd").text()
-                elif "提要文摘附注" in i("dt").text():
-                    result["abstract"] = i("dd").text()
-                elif "中图法分类号" in i("dt").text():
-                    result["call_no"] = i("dd").text()
+                for key in dictionary.keys():
+                    if key in i("dt").text():
+                        result[dictionary[key]] = i("dd").text()
             result["books"] = [
                 {
                     "annual_roll": "".join(trs[n]("td:eq(2)").text().split()),
